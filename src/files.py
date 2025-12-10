@@ -14,7 +14,7 @@ class AddGetDel(ABC):
     """
 
     @abstractmethod
-    def add_vacancy(self, *args: Any) -> None:
+    def add_vacancy(self, *args: Any, **kwargs: Any) -> None:
         pass
 
     @abstractmethod
@@ -35,45 +35,40 @@ class JSONSaver(AddGetDel):
 
     def __init__(self, name_file: str | None = None) -> None:
         self.__name_file = name_file if name_file else "vacancies"
+        self.way_to_json = os.path.join(os.path.dirname(__file__), f"../data/{self.__name_file}.json")
 
     def add_vacancy(self, vacancy: Vacancy) -> None:
         """
         Метод добавляет данных в файл
         """
         try:
-            with open(f"../data/{self.__name_file}.json", "r", encoding="utf-8") as file:
+            with open(self.way_to_json, "r", encoding="utf-8") as file:
                 data = json.load(file)
 
             if any(str(vacancy.link) in v.values() for v in data) is False:
-                dictionary = {}
-                dictionary["title"] = vacancy.title
-                dictionary["link"] = vacancy.link
-                dictionary["salary"] = vacancy.salary
-                dictionary["description"] = vacancy.description
-                dictionary["requirements"] = vacancy.requirements
+                dictionary = {
+                    "title": vacancy.title,
+                    "link": vacancy.link,
+                    "address": vacancy.address,
+                    "salary": vacancy.salary,
+                    "description": vacancy.description,
+                    "requirements": vacancy.requirements,
+                }
                 data.append(dictionary)
 
-            with open(f"../data/{self.__name_file}.json", "w", encoding="utf-8") as file:
+            with open(self.way_to_json, "w", encoding="utf-8") as file:
                 json.dump(data, file, ensure_ascii=False, indent=4)
 
-        except json.JSONDecodeError:
-            with open(f"../data/{self.__name_file}.json", "w", encoding="utf-8") as file:
-                dictionary = {}
-                dictionary["title"] = vacancy.title
-                dictionary["link"] = vacancy.link
-                dictionary["salary"] = vacancy.salary
-                dictionary["description"] = vacancy.description
-                dictionary["requirements"] = vacancy.requirements
-                json.dump([dictionary], file, ensure_ascii=False, indent=4)
-
-        except FileNotFoundError:
-            with open(f"../data/{self.__name_file}.json", "w", encoding="utf-8") as file:
-                dictionary = {}
-                dictionary["title"] = vacancy.title
-                dictionary["link"] = vacancy.link
-                dictionary["salary"] = vacancy.salary
-                dictionary["description"] = vacancy.description
-                dictionary["requirements"] = vacancy.requirements
+        except (FileNotFoundError, json.JSONDecodeError):
+            with open(self.way_to_json, "w", encoding="utf-8") as file:
+                dictionary = {
+                    "title": vacancy.title,
+                    "link": vacancy.link,
+                    "address": vacancy.address,
+                    "salary": vacancy.salary,
+                    "description": vacancy.description,
+                    "requirements": vacancy.requirements,
+                }
                 json.dump([dictionary], file, ensure_ascii=False, indent=4)
 
         return None
@@ -82,7 +77,7 @@ class JSONSaver(AddGetDel):
         """
         Метод получения данных из файла
         """
-        with open(f"../data/{self.__name_file}.json", "r", encoding="utf-8") as file:
+        with open(self.way_to_json, "r", encoding="utf-8") as file:
             data = json.load(file)
             return data
 
@@ -90,7 +85,7 @@ class JSONSaver(AddGetDel):
         """
         Метод удаляют вакансию из списка
         """
-        with open(f"../data/{self.__name_file}.json", "r", encoding="utf-8") as file:
+        with open(self.way_to_json, "r", encoding="utf-8") as file:
             data = json.load(file)
 
         count = 0
@@ -100,7 +95,5 @@ class JSONSaver(AddGetDel):
             else:
                 count += 1
 
-        with open(f"../data/{self.__name_file}.json", "w", encoding="utf-8") as file:
+        with open(self.way_to_json, "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
-
-        return None

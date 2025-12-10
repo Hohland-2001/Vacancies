@@ -1,59 +1,78 @@
 import json
 import os
-import unittest
-from unittest.mock import patch
 
 from src.files import JSONSaver
 from src.vacancy import Vacancy
 
 
-class TestJSONSaver(unittest.TestCase):
+def test_class_json_saver_add_vacancy(v_correct2: dict, v_no_info: dict) -> None:
+    test_file = "test_vacancies"
+    test_data_path = f"../data/{test_file}"
 
-    def setUp(self):
-        """Подготовка перед каждым тестом"""
-        self.test_file = "test_vacancies"
-        self.saver = JSONSaver(self.test_file)
-        self.test_data_path = f"../data/{self.test_file}.json"
+    # Удаляем файл перед тестом, если существует
+    if os.path.exists(f'{test_data_path}.json'):
+        os.remove(f'{test_data_path}.json')
 
-        # Удаляем файл перед тестом, если существует
-        if os.path.exists(self.test_data_path):
-            os.remove(self.test_data_path)
+    v = Vacancy(v_correct2)
+    JSONSaver(test_data_path).add_vacancy(v)
 
-    def tearDown(self):
-        """Очистка после каждого теста"""
-        if os.path.exists(self.test_data_path):
-            os.remove(self.test_data_path)
+    JSONSaver(test_data_path).add_vacancy(v)
 
-    @patch("json.load")
-    @patch("builtins.open", new_callable=unittest.mock.mock_open)
-    def test_add_vacancy_existing_file(self, mock_open, mock_load):
-        """Тест добавления вакансии в существующий файл"""
-        # Подготавливаем существующие данные
-        existing_data = [{"title": "JS Dev", "link": "https://example.com/2", "salary": "90000", "description": "aaa",
-                          "requirements": "bbb"}]
-        mock_load.return_value = existing_data
+    assert JSONSaver(test_data_path).get_vacancy() == [
+        {
+            "title": "xxx",
+            "link": "ppp",
+            "address": "vvv",
+            "salary": "5000 - 11000",
+            "description": "nnn",
+            "requirements": "mmm"
+        }
+    ]
 
-        vacancy = Vacancy("Python Dev", "https://example.com/1", "100000", "hjhj", "bubu")
-        self.saver.add_vacancy(vacancy)
 
-        # Проверяем, что вакансия добавлена
-        with open(self.test_data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            self.assertEqual(len(data), 2)
-            self.assertIn("Python Dev", [item["title"] for item in data])
+def test_class_json_saver_get_vacancy(v_correct2: dict) -> None:
+    test_file = "test_vacancies"
+    test_data_path = f"../data/{test_file}"
 
-    @patch("json.load")
-    @patch("builtins.open", new_callable=unittest.mock.mock_open)
-    def test_add_vacancy_duplicate_link(self, mock_open, mock_load):
-        """Тест попытки добавления дублирующей вакансии (по ссылке)"""
-        existing_data = [
-            {"title": "Python Dev", "link": "https://example.com/1", "salary": "100000", "description": "aaa",
-             "requirements": "bbb"}]
-        mock_load.return_value = existing_data
+    # Удаляем файл перед тестом, если существует
+    if os.path.exists(f'{test_data_path}.json'):
+        os.remove(f'{test_data_path}.json')
 
-        vacancy = Vacancy("Another Python Dev", "https://example.com/1", "120000", "utytu", "uyyu")
-        self.saver.add_vacancy(vacancy)  # Не должна добавиться
+    v = Vacancy(v_correct2)
+    JSONSaver(test_data_path).add_vacancy(v)
+    assert JSONSaver(test_data_path).get_vacancy() == [
+        {
+            "title": "xxx",
+            "link": "ppp",
+            "address": "vvv",
+            "salary": "5000 - 11000",
+            "description": "nnn",
+            "requirements": "mmm"
+        }
+    ]
 
-        with open(self.test_data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            self.assertEqual(len(data), 1)  # Количество не изменилось
+
+def tests_class_json_saver_del_vacancy(v_correct1: dict, v_correct2: dict) -> None:
+    test_file = "test_vacancies"
+    test_data_path = f"../data/{test_file}"
+
+    # Удаляем файл перед тестом, если существует
+    if os.path.exists(f'{test_data_path}.json'):
+        os.remove(f'{test_data_path}.json')
+
+    v1 = Vacancy(v_correct1)
+    v2 = Vacancy(v_correct2)
+    JSONSaver(test_data_path).add_vacancy(v1)
+    JSONSaver(test_data_path).add_vacancy(v2)
+    JSONSaver(test_data_path).delete_vacancy(v1)
+
+    assert JSONSaver(test_data_path).get_vacancy() == [
+        {
+            "title": "xxx",
+            "link": "ppp",
+            "address": "vvv",
+            "salary": "5000 - 11000",
+            "description": "nnn",
+            "requirements": "mmm"
+        }
+    ]

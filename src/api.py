@@ -38,7 +38,7 @@ class HH(API):
         Метод получения данных о вакансиях через API
         """
         self.__params["text"] = keyword
-        while self.__params.get("page") != 10:
+        while self.__params.get("page") != 2:
             response = requests.get(self.__url, headers=self.__headers, params=self.__params)
             vacancies = response.json()["items"]
             self.__vacancies.extend(vacancies)
